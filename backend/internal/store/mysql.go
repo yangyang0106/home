@@ -21,6 +21,7 @@ type MySQLStore struct {
 }
 
 func NewMySQLStore(dsn string, meta model.Meta) (*MySQLStore, error) {
+	// MySQL 连接在启动时就做一次探活，避免服务起起来了但实际不可用。
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, err
@@ -86,6 +87,7 @@ func (s *MySQLStore) GetWeights(householdID string) ([]model.WeightProfile, erro
 	}
 
 	if len(profiles) == 0 {
+		// 新家庭还没保存过权重时，直接回落到默认模板，保证页面可立即使用。
 		return defaultProfiles(), nil
 	}
 
@@ -117,6 +119,7 @@ func (s *MySQLStore) SaveWeights(householdID string, profiles []model.WeightProf
 	if _, err := tx.Exec(`DELETE FROM weight_profiles WHERE household_id = ?`, householdID); err != nil {
 		return err
 	}
+	// 权重采用“整套覆盖”而不是逐条 patch，前端提交和后端落库都更简单稳定。
 
 	stmt, err := tx.Prepare(`
 		INSERT INTO weight_profiles (household_id, role_code, metric_key, weight_value)
@@ -222,6 +225,7 @@ func (s *MySQLStore) CreateHouse(householdID string, house model.House) (*model.
 	if err := upsertHouse(tx, householdID, house, true); err != nil {
 		return nil, err
 	}
+	// 加分项和风险项拆到独立表，便于后续增减选项，不需要改 houses 主表字段。
 	if err := replaceSelections(tx, house.ID, house.BonusSelections, "house_bonus_selections", "bonus_key"); err != nil {
 		return nil, err
 	}
@@ -247,6 +251,7 @@ func (s *MySQLStore) UpdateHouse(householdID, houseID string, house model.House)
 	defer tx.Rollback()
 
 	house.ID = houseID
+	// 更新时强制以后端路径中的 houseID 为准，避免前端篡改请求体中的 id。
 	if err := upsertHouse(tx, householdID, house, false); err != nil {
 		return nil, err
 	}
@@ -332,6 +337,7 @@ func scanHouse(s scanner) (model.House, error) {
 
 func (s *MySQLStore) attachSelections(houses []model.House) error {
 	for index := range houses {
+		// 评分时需要完整房源对象，所以在出库后把附加项和风险项一并拼回去。
 		bonus, err := s.fetchSelections(houses[index].ID, "house_bonus_selections", "bonus_key")
 		if err != nil {
 			return err
@@ -410,6 +416,7 @@ func upsertHouse(tx *sql.Tx, householdID string, house model.House, isCreate boo
 		return err
 	}
 	if affected == 0 {
+		// household_id 也参与更新条件，确保不能跨家庭误改别人的房源。
 		return ErrHouseNotFound
 	}
 	return nil
@@ -465,6 +472,7 @@ func defaultProfileLabel(role string) string {
 }
 
 func (s *MySQLStore) ensureHousehold(householdID string) error {
+	// 这里会自动补齐家庭和默认成员，是为了兼容 demo 数据和新建家庭的冷启动场景。
 	if _, err := s.db.Exec(`
 		INSERT INTO households (id, name)
 		VALUES (?, ?)
@@ -528,6 +536,7 @@ func (s *MySQLStore) CreateUser(user model.User, passwordSalt, passwordHash, hou
 		return err
 	}
 	if adminCount == 0 {
+		// 第一位注册用户自动成为管理员，避免系统初始化后没有人能进入总后台。
 		user.IsAdmin = true
 	}
 
@@ -686,6 +695,7 @@ func (s *MySQLStore) LinkUsers(userID, partnerUserID string) error {
 		return err
 	}
 	if myHouseholdID == partnerHouseholdID {
+		// 已经在同一个家庭时直接返回，避免重复关联产生脏数据。
 		return nil
 	}
 

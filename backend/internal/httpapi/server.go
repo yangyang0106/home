@@ -24,6 +24,7 @@ func NewServer(s store.Store, scoring *service.ScoringService, auth *service.Aut
 }
 
 func (s *Server) Routes() http.Handler {
+	// 这里把所有接口集中注册，前端只需要认 `/api/v1/...` 这一套约定。
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", s.handleHealth)
 	mux.HandleFunc("/api/v1/meta", s.handleMeta)
@@ -181,6 +182,8 @@ func (s *Server) handleAdminUserAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	path := strings.TrimPrefix(r.URL.Path, "/api/v1/admin/users/")
+	// 管理员操作接口走 `/admin/users/{id}/admin` 这种路径格式，
+	// 这里手动切分路径，避免为了一个简单接口额外引入路由框架。
 	parts := strings.Split(strings.Trim(path, "/"), "/")
 	if len(parts) != 2 || parts[1] != "admin" {
 		writeError(w, http.StatusNotFound, "resource not found")
@@ -215,6 +218,8 @@ func (s *Server) handleHouseholds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	householdID := parts[0]
+	// 所有房源相关接口都先过这里的登录与家庭归属校验，
+	// 这样能统一拦住“未登录访问”和“跨家庭越权访问”。
 	user, err := s.authProfileForHousehold(bearerToken(r), householdID)
 	if err != nil {
 		if err.Error() == "forbidden" {
@@ -317,6 +322,7 @@ func (s *Server) handleHouses(w http.ResponseWriter, r *http.Request, householdI
 	}
 
 	houseID := tail[0]
+	// 这里把单房源的查改删统一收口，前端编辑页只需要围绕 houseID 调用即可。
 	switch r.Method {
 	case http.MethodGet:
 		house, err := s.store.GetHouse(householdID, houseID)
@@ -379,6 +385,7 @@ func (s *Server) authProfileForHousehold(token, householdID string) (*model.User
 		return nil, err
 	}
 	if user.IsAdmin {
+		// 管理员可以跨家庭查看与管理数据，方便总后台做统一账号维护。
 		return user, nil
 	}
 	myHouseholdID, err := s.store.FindHouseholdIDByUserID(user.ID)

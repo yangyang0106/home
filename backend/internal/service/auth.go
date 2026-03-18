@@ -41,7 +41,8 @@ func (s *AuthService) Register(loginID, password, displayName string) (*model.Us
 		ID:          newID("user"),
 		LoginID:     loginID,
 		DisplayName: displayName,
-		LinkCode:    upperHex(4),
+		// 关联码是夫妻双方线下互相输入的唯一 ID，不直接暴露数据库主键。
+		LinkCode: upperHex(4),
 	}
 	salt := randomHex(16)
 	hash := hashPassword(password, salt)
@@ -117,6 +118,7 @@ func (s *AuthService) LinkPartner(token, partnerLinkCode string) (*model.Account
 	if partner.ID == user.ID {
 		return nil, ErrLinkSelf
 	}
+	// 关联成功后，两个人会并入同一个 household，后续房源和权重都会共享。
 	if err := s.store.LinkUsers(user.ID, partner.ID); err != nil {
 		return nil, err
 	}
@@ -149,12 +151,14 @@ func (s *AuthService) SetAdmin(token, targetUserID string, isAdmin bool) error {
 		return errors.New("forbidden")
 	}
 	if user.ID == targetUserID && !isAdmin {
+		// 防止唯一管理员把自己也降权，导致后台失去管理入口。
 		return errors.New("不能取消自己的管理员权限")
 	}
 	return s.store.SetUserAdmin(targetUserID, isAdmin)
 }
 
 func (s *AuthService) createSession(userID string) (string, error) {
+	// 当前实现使用服务端 session token，前端只存 token，不直接持有用户敏感信息。
 	token := randomHex(24)
 	expiresAt := time.Now().Add(30 * 24 * time.Hour).Format("2006-01-02 15:04:05")
 	if err := s.store.CreateSession(model.Session{

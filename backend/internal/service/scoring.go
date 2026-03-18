@@ -10,6 +10,7 @@ import (
 )
 
 var defaultMetrics = []model.MetricDef{
+	// 指标定义决定了前端展示顺序，也决定了评分时走哪种标准化规则。
 	{Key: "totalPrice", Label: "总价", Note: "越低越好", Type: "lower"},
 	{Key: "commuteTime", Label: "通勤", Note: "越低越好", Type: "lower"},
 	{Key: "houseAge", Label: "房龄", Note: "越低越好", Type: "lower"},
@@ -27,6 +28,7 @@ var defaultMetrics = []model.MetricDef{
 }
 
 var defaultMeta = model.Meta{
+	// 这里是系统内置的默认映射，用来支撑“枚举类打分”和加减分项。
 	Metrics: defaultMetrics,
 	HouseTypeScores: map[string]float64{
 		"次新商品房": 100,
@@ -66,6 +68,7 @@ var defaultMeta = model.Meta{
 }
 
 var defaultProfiles = []model.WeightProfile{
+	// 默认权重代表一套开箱即用的夫妻决策模板，用户后续可以自行改写。
 	{
 		Role:  "me",
 		Label: "我的偏好",
@@ -142,6 +145,8 @@ func (s *ScoringService) BuildDashboard(householdID string) (model.Dashboard, er
 }
 
 func AssembleDashboard(householdID string, profiles []model.WeightProfile, houses []model.House, meta model.Meta) model.Dashboard {
+	// Dashboard 是前端单次渲染所需的聚合结果，后端统一算完再返回，
+	// 可以避免前端和后端各自维护一套评分逻辑。
 	computed := computeScores(houses, profiles, meta)
 	return model.Dashboard{
 		HouseholdID: householdID,
@@ -155,6 +160,7 @@ func AssembleDashboard(householdID string, profiles []model.WeightProfile, house
 func computeScores(houses []model.House, profiles []model.WeightProfile, meta model.Meta) []model.ComputedHouse {
 	started := make([]model.House, 0, len(houses))
 	for _, house := range houses {
+		// 草稿或空白房源不参与比较，避免把未录完整的数据拉低整体排序。
 		if isStarted(house) {
 			started = append(started, house)
 		}
@@ -165,6 +171,8 @@ func computeScores(houses []model.House, profiles []model.WeightProfile, meta mo
 		if metric.Type == "mapped" {
 			continue
 		}
+		// 连续型指标先按当前家庭内的房源区间做标准化，
+		// 这样“好坏”永远是基于同一批待选房源相对得出的。
 		minVal, maxVal := math.MaxFloat64, -math.MaxFloat64
 		found := false
 		for _, house := range started {
@@ -189,6 +197,8 @@ func computeScores(houses []model.House, profiles []model.WeightProfile, meta mo
 		for _, metric := range meta.Metrics {
 			normalized[metric.Key] = normalizeMetric(house, metric, meta, ranges)
 		}
+		// 先分别计算双方个人分，再计算一致性与共识分，
+		// 最后叠加 bonus 并扣掉风险项，完整对应产品里的公式。
 		myScore := weightedScore(normalized, myWeights, meta.Metrics)
 		partnerScore := weightedScore(normalized, partnerWeights, meta.Metrics)
 		consistency := clamp(100-math.Abs(myScore-partnerScore), 0, 100)
@@ -213,6 +223,7 @@ func computeScores(houses []model.House, profiles []model.WeightProfile, meta mo
 	}
 
 	slices.SortFunc(result, func(a, b model.ComputedHouse) int {
+		// 默认按最终分倒序，前端直接拿来展示“当前第一”和列表排序。
 		return cmp.Compare(b.FinalScore, a.FinalScore)
 	})
 	return result
@@ -223,6 +234,7 @@ func summarize(houses []model.ComputedHouse) model.Summary {
 	if len(houses) == 0 {
 		return summary
 	}
+	// 汇总信息主要给首页总览卡片和推荐区使用。
 	summary.BestFinalScore = houses[0].FinalScore
 	total := 0.0
 	for _, house := range houses {

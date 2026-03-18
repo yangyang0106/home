@@ -2,6 +2,7 @@ const api = window.homeApi;
 
 const VIEW_IDS = ["dashboard", "list", "create", "edit", "compare", "weights", "account", "admin"];
 
+// 这里集中维护前端运行时状态，避免多个页面视图各自保存一份数据。
 let state = {
   meta: null,
   weights: [],
@@ -90,6 +91,7 @@ document.querySelectorAll("[data-view]").forEach((button) => {
 });
 
 function createEmptyHouse() {
+  // 新建页使用独立草稿对象，只有真正点击创建时才会写入后端。
   return {
     id: crypto.randomUUID(),
     householdId: api.householdId || "",
@@ -123,6 +125,8 @@ function createEmptyHouse() {
 }
 
 async function bootstrapAuthedApp() {
+  // 登录成功后统一拉取账号信息和家庭上下文，
+  // 这样后续所有接口都能自动带上正确的 householdId。
   authProfile = await api.getMe();
   api.householdId = authProfile.householdId;
   createDraft = createEmptyHouse();
@@ -156,6 +160,7 @@ async function loadDashboard() {
   statusTextEl.textContent = "正在同步后端数据...";
   const dashboard = await api.getDashboard();
   state = dashboard;
+  // 房源列表每次都以后端结果为准，前端只保留界面态，比如当前编辑项和对比勾选。
   syncCompareSelection();
   if (!editHouseId && dashboard.houses.length) {
     editHouseId = dashboard.houses[0].id;
@@ -171,6 +176,7 @@ function syncCompareSelection() {
 
 function switchView(view) {
   if (view === "admin" && !authProfile?.user?.isAdmin) {
+    // 非管理员即使手动点到管理页，也会被拉回首页，避免前端越权操作。
     view = "dashboard";
   }
   document.querySelectorAll(".nav-button").forEach((button) => {
@@ -183,6 +189,7 @@ function switchView(view) {
 }
 
 function render() {
+  // 单次加载后把所有视图一次性刷新，保证切页时看到的都是同一份最新数据。
   renderSummary();
   renderHouseList();
   renderCreateForm();
@@ -281,6 +288,7 @@ function renderHouseList() {
     button.addEventListener("click", () => {
       editHouseId = button.dataset.edit;
       renderEditForm();
+      // 从列表直接跳到独立编辑页，避免“列表和表单挤在一个页面”的混乱感。
       switchView("edit");
     });
   });
@@ -296,6 +304,7 @@ function renderHouseList() {
 }
 
 function getVisibleHouses() {
+  // 列表页先按关键词过滤，再按用户选定规则排序。
   const filtered = state.houses.filter((house) => {
     if (!listSearchKeyword) return true;
     const text = [house.communityName, house.listingName, house.notes, house.orientation, house.floor]
@@ -327,6 +336,7 @@ function parseDate(value) {
 function highlightMatch(text) {
   const value = String(text || "");
   if (!listSearchKeyword) return escapeHtml(value);
+  // 搜索高亮先转义 HTML，再包 mark，避免备注等自由输入内容带来注入问题。
   const regex = new RegExp(`(${escapeRegExp(listSearchKeyword)})`, "ig");
   return escapeHtml(value).replace(regex, '<mark class="search-hit">$1</mark>');
 }
@@ -384,6 +394,7 @@ function renderCompareResults() {
   }
   const table = document.createElement("div");
   table.className = "compare-table";
+  // 对比页只展示决策最关键的那几项，不把整张表单字段全部搬过来。
   const rows = [
     { label: "最终分", key: "finalScore", format: round1 },
     { label: "我的分", key: "myScore", format: round1 },
@@ -490,6 +501,7 @@ function renderEditForm() {
 
 function renderHouseForm(container, house, options) {
   container.innerHTML = "";
+  // 表单结构按“基础信息 / 通勤生活 / 居住体验”分组，和产品定义保持一致。
   const groups = [
     ["基础信息", [["communityName", "小区名"], ["listingName", "房源名/楼栋室"], ["viewDate", "看房日期", "date"], ["totalPrice", "总价", "number"], ["unitPrice", "单价", "number"], ["area", "面积", "number"], ["houseAge", "房龄", "number"], ["floor", "楼层"], ["orientation", "朝向"]]],
     ["通勤与生活", [["commuteTime", "通勤", "number"], ["metroTime", "地铁", "number"], ["monthlyFee", "物业费", "number"], ["efficiencyRate", "得房率", "number"], ["livingConvenience", "生活便利度", "number"]]],
@@ -576,6 +588,7 @@ function buildChoiceSection(title, key, options, house) {
     const selected = house[key]?.includes(option.key);
     item.innerHTML = `<div><div>${option.label}</div><small>${option.score ? `加分 +${option.score}` : `${option.level}风险 -${option.penalty}`}</small></div><input type="checkbox" ${selected ? "checked" : ""} />`;
     item.querySelector("input").addEventListener("change", (event) => {
+      // 加分项和风险项都以 key 数组存储，后端再根据 key 映射分数与惩罚。
       const set = new Set(house[key] || []);
       if (event.target.checked) set.add(option.key);
       else set.delete(option.key);
@@ -634,6 +647,7 @@ function renderAdmin() {
   }
 
   adminUsers.forEach((user) => {
+    // 管理员页面只负责账号总览和权限切换，不承载家庭数据编辑，保持边界清晰。
     const item = document.createElement("article");
     item.className = "account-member";
     item.innerHTML = `
@@ -674,6 +688,7 @@ function round1(value) {
 (async function init() {
   if (api.token) {
     try {
+      // 刷新页面后如果本地还有 token，就自动恢复登录态。
       await bootstrapAuthedApp();
       return;
     } catch {
