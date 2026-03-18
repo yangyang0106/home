@@ -1,4 +1,6 @@
-const API_BASE = "http://127.0.0.1:8080/api/v1";
+// 生产环境通过 Nginx 反向代理 `/api` 到 Go 后端，
+// 前端统一走相对路径，避免写死本机地址后在服务器上访问失效。
+const API_BASE = "/api/v1";
 const AUTH_TOKEN_KEY = "home-decision-auth-token";
 
 window.homeApi = {
