@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>家庭看房决策计算器</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">Family Home Decision Maker</p>
+        <h1>家庭看房决策计算器</h1>
+        <p class="hero-copy">把总览、新建、编辑、对比拆开，每一页只做一件事。</p>
+      </header>
+
+      <section class="panel auth-panel" id="auth-panel">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">登录</p>
+            <h2>账号入口</h2>
+          </div>
+          <span class="hint-text">注册后会自动生成你的唯一关联 ID</span>
+        </div>
+        <div class="auth-grid">
+          <form id="login-form" class="form-group">
+            <h3>登录</h3>
+            <label class="field">
+              <span>账号</span>
+              <input id="login-id" type="text" placeholder="请输入登录账号" />
+            </label>
+            <label class="field">
+              <span>密码</span>
+              <input id="login-password" type="password" placeholder="请输入密码" />
+            </label>
+            <button type="submit" class="primary-button">登录</button>
+          </form>
+          <form id="register-form" class="form-group">
+            <h3>注册</h3>
+            <label class="field">
+              <span>显示名</span>
+              <input id="register-name" type="text" placeholder="例如：小王" />
+            </label>
+            <label class="field">
+              <span>账号</span>
+              <input id="register-id" type="text" placeholder="自定义登录账号" />
+            </label>
+            <label class="field">
+              <span>密码</span>
+              <input id="register-password" type="password" placeholder="至少 6 位" />
+            </label>
+            <button type="submit" class="primary-button">注册并进入</button>
+          </form>
+        </div>
+      </section>
+
+      <nav class="top-nav hidden" id="top-nav">
+        <button type="button" class="nav-button active" data-view="dashboard">总览</button>
+        <button type="button" class="nav-button" data-view="list">列表</button>
+        <button type="button" class="nav-button" data-view="create">新建</button>
+        <button type="button" class="nav-button" data-view="compare">对比</button>
+        <button type="button" class="nav-button" data-view="weights">权重</button>
+        <button type="button" class="nav-button" data-view="account">账号</button>
+        <button type="button" class="nav-button hidden" data-view="admin">管理</button>
+      </nav>
+
+      <main class="page-stack hidden" id="app-main">
+        <section class="page active" id="view-dashboard">
+          <section class="panel summary-panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">总览</p>
+                <h2>房源总览</h2>
+              </div>
+              <button id="reload-dashboard" class="ghost-button" type="button">刷新数据</button>
+            </div>
+            <div class="scoreboard" id="summary-cards"></div>
+            <div class="top-picks" id="top-picks"></div>
+          </section>
+        </section>
+
+        <section class="page" id="view-list">
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">列表</p>
+                <h2>全部房源</h2>
+              </div>
+              <span class="hint-text" id="status-text">等待加载</span>
+            </div>
+            <div class="list-toolbar">
+              <label class="field">
+                <span>搜索</span>
+                <input id="list-search" type="text" placeholder="搜小区名、楼栋室、备注" />
+              </label>
+              <label class="field">
+                <span>排序</span>
+                <select id="list-sort">
+                  <option value="final-desc">最终分从高到低</option>
+                  <option value="final-asc">最终分从低到高</option>
+                  <option value="date-desc">看房日期从新到旧</option>
+                  <option value="date-asc">看房日期从旧到新</option>
+                  <option value="price-asc">总价从低到高</option>
+                  <option value="price-desc">总价从高到低</option>
+                </select>
+              </label>
+            </div>
+            <div id="house-list" class="house-list"></div>
+          </section>
+        </section>
+
+        <section class="page" id="view-create">
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">新建</p>
+                <h2>新增房源</h2>
+              </div>
+              <button id="reset-create" class="ghost-button" type="button">清空重填</button>
+            </div>
+            <form id="create-form" class="house-form"></form>
+          </section>
+        </section>
+
+        <section class="page" id="view-edit">
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">编辑</p>
+                <h2 id="edit-title">编辑房源</h2>
+              </div>
+              <button id="back-dashboard" class="ghost-button" type="button">返回总览</button>
+            </div>
+            <form id="edit-form" class="house-form"></form>
+          </section>
+        </section>
+
+        <section class="page" id="view-compare">
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">对比</p>
+                <h2>多房源横向比较</h2>
+              </div>
+              <span class="hint-text">建议选择 2 到 4 套</span>
+            </div>
+            <div id="compare-picker" class="compare-picker"></div>
+            <div id="compare-results" class="compare-results"></div>
+          </section>
+        </section>
+
+        <section class="page" id="view-weights">
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">权重设置</p>
+                <h2>双人偏好</h2>
+              </div>
+            </div>
+            <div class="weight-tabs" id="weight-tabs"></div>
+            <div class="weight-editor" id="weight-editor"></div>
+          </section>
+        </section>
+
+        <section class="page" id="view-account">
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">账号</p>
+                <h2>账号管理</h2>
+              </div>
+              <button id="logout-button" class="ghost-button" type="button">退出登录</button>
+            </div>
+            <div class="account-grid">
+              <section class="form-group">
+                <h3>当前账号</h3>
+                <div id="account-profile"></div>
+              </section>
+              <form id="link-form" class="form-group">
+                <h3>关联夫妻双方</h3>
+                <p class="hint-text">让另一半把她的唯一 ID 发给你，在这里填入后即可归到同一个家庭。</p>
+                <label class="field">
+                  <span>关联方</span>
+                  <select id="relation-type">
+                    <option value="partner">另一半</option>
+                    <option value="co_decider">共同决策人</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>对方唯一 ID</span>
+                  <input id="partner-link-code" type="text" placeholder="例如：A1B2C3D4" />
+                </label>
+                <button type="submit" class="primary-button">立即关联</button>
+              </form>
+            </div>
+          </section>
+        </section>
+
+        <section class="page" id="view-admin">
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">管理员</p>
+                <h2>账号总管理</h2>
+              </div>
+              <span class="hint-text">只有管理员可见</span>
+            </div>
+            <div id="admin-users" class="admin-users"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="weight-row-template">
+      <label class="weight-row">
+        <div class="weight-row__text">
+          <span class="metric-name"></span>
+          <small class="metric-note"></small>
+        </div>
+        <div class="weight-row__control">
+          <input type="range" min="0" max="100" step="1" />
+          <output>0%</output>
+        </div>
+      </label>
+    </template>
+
+    <script src="./api.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

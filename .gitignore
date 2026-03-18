@@ -1,0 +1,15 @@
+.DS_Store
+
+# Go build cache and binaries
+backend/.gocache/
+backend/server
+
+# Local env files
+.env
+.env.local
+backend/.env
+backend/.env.local
+
+# Temporary debug payloads
+backend/.tmp-*.json
+

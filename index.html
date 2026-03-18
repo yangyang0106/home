@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>家庭看房决策计算器</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">Family Home Decision Maker</p>
+        <h1>家庭看房决策计算器</h1>
+        <p class="hero-copy">
+          用同一把尺子记录每次看房，把感受、偏好和风险都变成可比较的结果。
+        </p>
+        <div class="hero-metrics">
+          <article>
+            <span>好记</span>
+            <strong>结构化录入</strong>
+          </article>
+          <article>
+            <span>好比</span>
+            <strong>多房源同屏排序</strong>
+          </article>
+          <article>
+            <span>好决策</span>
+            <strong>双人共识分</strong>
+          </article>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel summary-panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">总览</p>
+              <h2>决策总控台</h2>
+            </div>
+            <button id="seed-demo" class="ghost-button" type="button">载入示例</button>
+          </div>
+
+          <div class="scoreboard" id="summary-cards"></div>
+
+          <div class="top-picks" id="top-picks"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">权重设置</p>
+              <h2>双人偏好</h2>
+            </div>
+            <button id="reset-weights" class="ghost-button" type="button">恢复默认</button>
+          </div>
+
+          <div class="weight-tabs" id="weight-tabs"></div>
+          <div class="weight-editor" id="weight-editor"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">看房记录</p>
+              <h2>录入一套房</h2>
+            </div>
+            <button id="new-house" class="ghost-button" type="button">新建记录</button>
+          </div>
+
+          <form id="house-form" class="house-form"></form>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">比较结果</p>
+              <h2>房源排序</h2>
+            </div>
+            <span class="hint-text">按最终分从高到低自动排序</span>
+          </div>
+          <div id="house-list" class="house-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="weight-row-template">
+      <label class="weight-row">
+        <div class="weight-row__text">
+          <span class="metric-name"></span>
+          <small class="metric-note"></small>
+        </div>
+        <div class="weight-row__control">
+          <input type="range" min="0" max="100" step="1" />
+          <output>0%</output>
+        </div>
+      </label>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
