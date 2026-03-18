@@ -93,7 +93,7 @@ document.querySelectorAll("[data-view]").forEach((button) => {
 function createEmptyHouse() {
   // 新建页使用独立草稿对象，只有真正点击创建时才会写入后端。
   return {
-    id: crypto.randomUUID(),
+    id: createClientId(),
     householdId: api.householdId || "",
     communityName: "",
     listingName: "",
@@ -122,6 +122,20 @@ function createEmptyHouse() {
     riskSelections: [],
     notes: ""
   };
+}
+
+function createClientId() {
+  // 某些较老的浏览器或内嵌 WebView 不支持 crypto.randomUUID，
+  // 这里优先使用原生实现，不支持时回退到基于随机数的本地唯一 ID。
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return `house_${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+  }
+  return `house_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
 async function bootstrapAuthedApp() {
