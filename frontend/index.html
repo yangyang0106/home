@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>家庭看房决策计算器</title>
+    <title>好房笔记</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -13,24 +13,41 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <div class="ambient ambient--left"></div>
+    <div class="ambient ambient--right"></div>
     <div class="app-shell">
       <header class="hero">
-        <p class="eyebrow">Family Home Decision Maker</p>
-        <h1>家庭看房决策计算器</h1>
-        <p class="hero-copy">把总览、新建、编辑、对比拆开，每一页只做一件事。</p>
+        <div class="hero-badge">Good Home Notes</div>
+        <p class="eyebrow">把每一次看房都记成清楚的判断</p>
+        <h1>好房笔记</h1>
+        <p class="hero-copy">把价格、通勤、采光、噪音和现场感受一起记下来，让复看、比较和沟通都更省心。</p>
+        <div class="hero-strip">
+          <article class="hero-stat">
+            <span>现场记录</span>
+            <strong>快速记下来</strong>
+          </article>
+          <article class="hero-stat">
+            <span>多套房源</span>
+            <strong>一眼看差异</strong>
+          </article>
+          <article class="hero-stat">
+            <span>一起商量</span>
+            <strong>结论更踏实</strong>
+          </article>
+        </div>
       </header>
 
       <section class="panel auth-panel" id="auth-panel">
         <div class="section-head">
           <div>
-            <p class="section-kicker">登录</p>
-            <h2>账号入口</h2>
+            <p class="section-kicker">欢迎回来</p>
+            <h2>进入你的好房笔记</h2>
           </div>
-          <span class="hint-text">注册后会自动生成你的唯一关联 ID</span>
+          <span class="hint-text">注册后会自动生成唯一关联 ID，方便和家人加入同一个家庭空间。</span>
         </div>
         <div class="auth-grid">
           <form id="login-form" class="form-group">
-            <h3>登录</h3>
+            <h3>登录账号</h3>
             <label class="field">
               <span>账号</span>
               <input id="login-id" type="text" placeholder="请输入登录账号" />
@@ -39,10 +56,10 @@
               <span>密码</span>
               <input id="login-password" type="password" placeholder="请输入密码" />
             </label>
-            <button type="submit" class="primary-button">登录</button>
+            <button type="submit" class="primary-button">进入笔记</button>
           </form>
           <form id="register-form" class="form-group">
-            <h3>注册</h3>
+            <h3>新建账号</h3>
             <label class="field">
               <span>显示名</span>
               <input id="register-name" type="text" placeholder="例如：小王" />
@@ -55,7 +72,7 @@
               <span>密码</span>
               <input id="register-password" type="password" placeholder="至少 6 位" />
             </label>
-            <button type="submit" class="primary-button">注册并进入</button>
+            <button type="submit" class="primary-button">创建并开始记录</button>
           </form>
         </div>
       </section>
@@ -75,10 +92,10 @@
           <section class="panel summary-panel">
             <div class="section-head">
               <div>
-                <p class="section-kicker">总览</p>
-                <h2>房源总览</h2>
+                <p class="section-kicker">首页</p>
+                <h2>本周看房概览</h2>
               </div>
-              <button id="reload-dashboard" class="ghost-button" type="button">刷新数据</button>
+              <button id="reload-dashboard" class="ghost-button" type="button">同步最新记录</button>
             </div>
             <div class="scoreboard" id="summary-cards"></div>
             <div class="top-picks" id="top-picks"></div>
@@ -89,18 +106,18 @@
           <section class="panel">
             <div class="section-head">
               <div>
-                <p class="section-kicker">列表</p>
-                <h2>全部房源</h2>
+                <p class="section-kicker">房源库</p>
+                <h2>全部看房笔记</h2>
               </div>
-              <span class="hint-text" id="status-text">等待加载</span>
+              <span class="hint-text" id="status-text">正在准备数据</span>
             </div>
             <div class="list-toolbar">
               <label class="field">
-                <span>搜索</span>
-                <input id="list-search" type="text" placeholder="搜小区名、楼栋室、备注" />
+                <span>查找</span>
+                <input id="list-search" type="text" placeholder="搜小区名、楼栋室或备注" />
               </label>
               <label class="field">
-                <span>排序</span>
+                <span>查看顺序</span>
                 <select id="list-sort">
                   <option value="final-desc">最终分从高到低</option>
                   <option value="final-asc">最终分从低到高</option>
@@ -119,10 +136,10 @@
           <section class="panel">
             <div class="section-head">
               <div>
-                <p class="section-kicker">新建</p>
-                <h2>新增房源</h2>
+                <p class="section-kicker">新记录</p>
+                <h2>记下一套新房</h2>
               </div>
-              <button id="reset-create" class="ghost-button" type="button">清空重填</button>
+              <button id="reset-create" class="ghost-button" type="button">重新开始</button>
             </div>
             <form id="create-form" class="house-form"></form>
           </section>
@@ -132,10 +149,10 @@
           <section class="panel">
             <div class="section-head">
               <div>
-                <p class="section-kicker">编辑</p>
-                <h2 id="edit-title">编辑房源</h2>
+                <p class="section-kicker">修改记录</p>
+                <h2 id="edit-title">更新这套房的笔记</h2>
               </div>
-              <button id="back-dashboard" class="ghost-button" type="button">返回总览</button>
+              <button id="back-dashboard" class="ghost-button" type="button">回到首页</button>
             </div>
             <form id="edit-form" class="house-form"></form>
           </section>
@@ -145,10 +162,10 @@
           <section class="panel">
             <div class="section-head">
               <div>
-                <p class="section-kicker">对比</p>
-                <h2>多房源横向比较</h2>
+                <p class="section-kicker">一起比较</p>
+                <h2>把几套房放在一起看</h2>
               </div>
-              <span class="hint-text">建议选择 2 到 4 套</span>
+              <span class="hint-text">建议一次比较 2 到 4 套，结论会更清楚。</span>
             </div>
             <div id="compare-picker" class="compare-picker"></div>
             <div id="compare-results" class="compare-results"></div>
@@ -159,8 +176,8 @@
           <section class="panel">
             <div class="section-head">
               <div>
-                <p class="section-kicker">权重设置</p>
-                <h2>双人偏好</h2>
+                <p class="section-kicker">偏好设置</p>
+                <h2>你们更在意什么</h2>
               </div>
             </div>
             <div class="weight-tabs" id="weight-tabs"></div>
@@ -172,8 +189,8 @@
           <section class="panel">
             <div class="section-head">
               <div>
-                <p class="section-kicker">账号</p>
-                <h2>账号管理</h2>
+                <p class="section-kicker">家庭空间</p>
+                <h2>成员与账号</h2>
               </div>
               <button id="logout-button" class="ghost-button" type="button">退出登录</button>
             </div>
@@ -183,10 +200,10 @@
                 <div id="account-profile"></div>
               </section>
               <form id="link-form" class="form-group">
-                <h3>关联夫妻双方</h3>
-                <p class="hint-text">让另一半把她的唯一 ID 发给你，在这里填入后即可归到同一个家庭。</p>
+                <h3>邀请家人加入</h3>
+                <p class="hint-text">把对方的唯一 ID 填进来，就能一起记录房源、同步偏好、共用这本好房笔记。</p>
                 <label class="field">
-                  <span>关联方</span>
+                  <span>加入身份</span>
                   <select id="relation-type">
                     <option value="partner">另一半</option>
                     <option value="co_decider">共同决策人</option>
@@ -196,7 +213,7 @@
                   <span>对方唯一 ID</span>
                   <input id="partner-link-code" type="text" placeholder="例如：A1B2C3D4" />
                 </label>
-                <button type="submit" class="primary-button">立即关联</button>
+                <button type="submit" class="primary-button">加入同一个家庭</button>
               </form>
             </div>
           </section>
@@ -206,10 +223,10 @@
           <section class="panel">
             <div class="section-head">
               <div>
-                <p class="section-kicker">管理员</p>
-                <h2>账号总管理</h2>
+                <p class="section-kicker">后台管理</p>
+                <h2>账号与权限一览</h2>
               </div>
-              <span class="hint-text">只有管理员可见</span>
+              <span class="hint-text">仅管理员可见</span>
             </div>
             <div id="admin-users" class="admin-users"></div>
           </section>
